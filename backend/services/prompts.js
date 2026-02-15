@@ -66,17 +66,22 @@ CRITICAL RULES:
 5. Identify and explain contradictions in evidence
 6. Be precise about what is proven vs what is uncertain
 
+IMPORTANT: When evidence provides general/biographical information that IMPLIES the claim is true:
+- If the evidence is from a high-credibility source (like Wikipedia) and provides context that strongly supports the claim, consider it valid
+- Example: If checking "X is Prime Minister" and evidence is a Wikipedia page about X with their political career, this is sufficient evidence
+- Use your knowledge to infer reasonable conclusions from high-quality sources
+
 VERDICT GUIDELINES:
-- TRUE: Claim is strongly supported by multiple credible sources with no significant contradictions
+- TRUE: Claim is strongly supported by credible sources (direct evidence OR high-quality sources with strong contextual support)
 - FALSE: Claim is clearly contradicted by credible evidence
 - PARTIALLY_TRUE: Claim is partially correct but missing important context, oversimplified, or contains both true and false elements
-- NOT_ENOUGH_EVIDENCE: Evidence is insufficient, contradictory, or sources lack credibility
+- NOT_ENOUGH_EVIDENCE: Evidence is insufficient, contradictory, or sources lack credibility (use sparingly - only when truly insufficient)
 
 IMPORTANT: Always provide the 'contradictions' field as an array. If there are no contradictions, use an empty array: []
 
 CONFIDENCE CALIBRATION:
 - 0.9-1.0: Overwhelming evidence from multiple high-credibility sources
-- 0.7-0.89: Strong evidence with minor gaps or single high-credibility source
+- 0.7-0.89: Strong evidence with minor gaps or single high-credibility source with contextual support
 - 0.5-0.69: Moderate evidence, some contradictions, or medium-credibility sources
 - 0.3-0.49: Weak evidence, significant contradictions, or low-credibility sources
 - 0.0-0.29: Very weak or highly contradictory evidence

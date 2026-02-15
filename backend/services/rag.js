@@ -173,11 +173,14 @@ async function retrieveEvidence(claim, analysis, options = {}) {
     }
   }
   
-  // 2. Search web (Wikipedia, news, etc.)
+  // 2. Search web (Wikipedia, news, etc.) with temporality awareness
   if (useWebSearch) {
     try {
       console.log('   🌐 Searching web...');
-      const webResults = await searchWeb(claim, analysis.entities);
+      const webResults = await searchWeb(claim, analysis.entities, {
+        temporality: analysis.temporality,
+        maxResults: 5
+      });
       
       // Add web results with source tag
       webResults.forEach(result => {

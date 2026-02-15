@@ -1,16 +1,24 @@
 /**
  * Web search service for retrieving real-time evidence
- * This is a simple implementation using DuckDuckGo-like search
+ * Uses Tavily API for news/current events, falls back to Wikipedia
  */
+
+import { searchTavily, searchTavilyNews, isTavilyAvailable } from './tavily-search.js';
 
 /**
  * Search the web for evidence related to the claim
+ * 
+ * @param {string} claim - The claim to search for
+ * @param {string[]} entities - Key entities extracted from the claim
+ * @param {Object} options - Search options
+ * @param {string} options.temporality - 'current', 'recent', 'historical', 'timeless'
+ * @param {number} options.maxResults - Maximum number of results
+ * @returns {Promise<Array>} Search results with title, url, snippet, credibility
  */
-export async function searchWeb(claim, entities = []) {
-  console.log('Searching web for evidence...');
+export async function searchWeb(claim, entities = [], options = {}) {
+  const { temporality = 'recent', maxResults = 5 } = options;
   
-  // For the prototype, we'll use a simple fetch-based approach
-  // In production, you'd use Tavily, SerpAPI, or Bing Search API
+  console.log(`Searching web for evidence (temporality=${temporality})...`);
   
   try {
     // Use entities for better search results, fallback to claim keywords
@@ -19,13 +27,41 @@ export async function searchWeb(claim, entities = []) {
     // Clean entity names (remove titles, honorifics)
     searchTerms = searchTerms.map(cleanEntityName);
     
-    // Search Wikipedia with the most relevant entity/keyword
-    const results = await searchWikipedia(searchTerms[0] || claim);
+    const searchQuery = searchTerms[0] || claim;
+    
+    // For timeless/historical claims, use Wikipedia directly (skip Tavily)
+    if (temporality === 'timeless' || temporality === 'historical') {
+      console.log(`   └─ Using Wikipedia for ${temporality} claim (skipping Tavily)`);
+      const results = await searchWikipedia(searchQuery);
+      return results;
+    }
+    
+    // For current/recent claims, try Tavily first (if available)
+    if ((temporality === 'current' || temporality === 'recent') && isTavilyAvailable()) {
+      try {
+        const timeFilter = temporality === 'current' ? '7d' : '30d';
+        const tavilyResults = await searchTavilyNews(searchQuery, { 
+          maxResults,
+          timeFilter
+        });
+        
+        if (tavilyResults.length > 0) {
+          console.log(`   └─ Using Tavily results (${tavilyResults.length} found)`);
+          return tavilyResults;
+        }
+      } catch (error) {
+        console.log(`   └─ Tavily search failed, falling back to Wikipedia: ${error.message}`);
+      }
+    }
+    
+    // Fallback to Wikipedia
+    console.log(`   └─ Using Wikipedia fallback`);
+    const results = await searchWikipedia(searchQuery);
     
     return results;
   } catch (error) {
     console.error('Web search error:', error.message);
-    // Return empty array if search fails (don't use mock by default)
+    // Return empty array if search fails
     return [];
   }
 }
