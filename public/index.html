@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Verifier - Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .test-claims {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-claims h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .claim-button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            color: #667eea;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .claim-button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .custom-claim {
+            margin-bottom: 30px;
+        }
+
+        .custom-claim h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .verify-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 15px;
+        }
+
+        .verify-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .verify-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            animation: fadeIn 0.5s;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .verdict {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .verdict-icon {
+            font-size: 2rem;
+        }
+
+        .result.true {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .result.true .verdict {
+            color: #155724;
+        }
+
+        .result.false {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .result.false .verdict {
+            color: #721c24;
+        }
+
+        .result.partially-true {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .result.partially-true .verdict {
+            color: #856404;
+        }
+
+        .result.not-enough-evidence {
+            background: #e7f1ff;
+            border: 2px solid #6c757d;
+        }
+
+        .result.not-enough-evidence .verdict {
+            color: #383d41;
+        }
+
+        .confidence {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .reasoning {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .reasoning h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .citations {
+            margin-top: 20px;
+        }
+
+        .citations h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .citation {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .citation-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .citation-url {
+            color: #667eea;
+            font-size: 0.85rem;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .citation-url:hover {
+            text-decoration: underline;
+        }
+
+        .citation-snippet {
+            margin-top: 8px;
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .processing-time {
+            text-align: right;
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Claim Verifier</h1>
+        <p class="subtitle">AI-powered fact-checking using RAG (Retrieval-Augmented Generation)</p>
+
+        <div class="test-claims">
+            <h3>📋 Try These Example Claims:</h3>
+            <button class="claim-button" onclick="testClaim('The Eiffel Tower was completed in 1889')">
+                The Eiffel Tower was completed in 1889
+            </button>
+            <button class="claim-button" onclick="testClaim('Water boils at 100 degrees Celsius at sea level')">
+                Water boils at 100 degrees Celsius at sea level
+            </button>
+            <button class="claim-button" onclick="testClaim('The Great Wall of China is visible from space with the naked eye')">
+                The Great Wall of China is visible from space with the naked eye
+            </button>
+            <button class="claim-button" onclick="testClaim('Napoleon Bonaparte was extremely short for his time')">
+                Napoleon Bonaparte was extremely short for his time
+            </button>
+        </div>
+
+        <div class="custom-claim">
+            <h3>✍️ Or Enter Your Own Claim:</h3>
+            <textarea id="claimInput" placeholder="Type any claim you want to verify..."></textarea>
+            <button class="verify-button" onclick="verifyClaim()">Verify Claim</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing claim and gathering evidence...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = '/api/verify';
+
+        function testClaim(claim) {
+            document.getElementById('claimInput').value = claim;
+            verifyClaim();
+        }
+
+        async function verifyClaim() {
+            const claim = document.getElementById('claimInput').value.trim();
+            
+            if (!claim) {
+                alert('Please enter a claim to verify');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').classList.remove('active');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        claim: claim,
+                        useWebSearch: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `
+                    <div class="verdict" style="color: #dc3545;">
+                        ❌ Error: ${error.message}
+                    </div>
+                    <p>Please check if the server is running and try again.</p>
+                `;
+                document.getElementById('result').classList.add('active');
+                document.getElementById('result').className = 'result active false';
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            
+            // Determine verdict class and icon
+            const verdictClass = data.verdict.toLowerCase().replace(/_/g, '-');
+            const verdictIcons = {
+                'true': '✅',
+                'false': '❌',
+                'partially-true': '⚠️',
+                'not-enough-evidence': '❓'
+            };
+            const icon = verdictIcons[verdictClass] || '❓';
+
+            // Format verdict text
+            const verdictText = data.verdict.replace(/_/g, ' ');
+
+            // Build citations HTML
+            let citationsHTML = '';
+            if (data.citations && data.citations.length > 0) {
+                citationsHTML = `
+                    <div class="citations">
+                        <h4>📚 Citations:</h4>
+                        ${data.citations.map((citation, index) => `
+                            <div class="citation">
+                                <div class="citation-title">[${citation.index}] ${citation.title}</div>
+                                <a href="${citation.url}" target="_blank" class="citation-url">${citation.url}</a>
+                                ${citation.snippet ? `<div class="citation-snippet">"${citation.snippet}"</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="verdict">
+                    <span class="verdict-icon">${icon}</span>
+                    <span>${verdictText}</span>
+                    <span class="confidence">Confidence: ${(data.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="reasoning">
+                    <h4>💭 Reasoning:</h4>
+                    <p>${data.reasoning}</p>
+                </div>
+                ${citationsHTML}
+                <div class="processing-time">⏱️ Processing time: ${data.processingTime}</div>
+            `;
+
+            resultDiv.className = `result active ${verdictClass}`;
+        }
+
+        // Allow Enter key to submit (with Ctrl/Cmd)
+        document.getElementById('claimInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                verifyClaim();
+            }
+        });
+    </script>
+</body>
+</html>

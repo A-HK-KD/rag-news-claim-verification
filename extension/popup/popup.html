@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim Verifier</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h1>🔍 Claim Verifier</h1>
+      <p class="popup-subtitle">AI-Powered Fact Checking</p>
+    </div>
+    
+    <div class="popup-content">
+      <div class="instruction-box">
+        <h3>How to Use:</h3>
+        <ol>
+          <li><strong>Highlight</strong> any text on a webpage</li>
+          <li><strong>Click</strong> the "Verify Claim" button that appears</li>
+          <li><strong>View</strong> the verification results instantly</li>
+        </ol>
+        
+        <div class="shortcut-info">
+          💡 <strong>Keyboard Shortcut:</strong> 
+          <code>Ctrl/Cmd + Shift + V</code>
+        </div>
+      </div>
+      
+      <div class="alternative-box">
+        <h3>Or verify a claim here:</h3>
+        <textarea 
+          id="claimInput" 
+          placeholder="Type any claim you want to verify..."
+          rows="4"
+        ></textarea>
+        <button id="verifyButton" class="verify-button">
+          🔍 Verify Claim
+        </button>
+      </div>
+      
+      <div id="result" class="result-section" style="display: none;"></div>
+      
+      <div id="loading" class="loading-section" style="display: none;">
+        <div class="spinner"></div>
+        <p>Analyzing claim and gathering evidence...</p>
+      </div>
+    </div>
+    
+    <div class="popup-footer">
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span id="statusText">Checking connection...</span>
+      </div>
+      <div class="links">
+        <a href="#" id="historyLink">📜 History</a>
+        <a href="http://localhost:3000" target="_blank">🔧 Dashboard</a>
+      </div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
